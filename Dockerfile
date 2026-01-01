@@ -1,33 +1,20 @@
-FROM docker.io/debian:12.11-slim
+FROM docker.io/debian:oldstable-slim
 
-ARG GITOLITE_PACKAGE_VERSION=3.6.12-1
-# https://git-annex.branchable.com/news/
-# https://git.joeyh.name/index.cgi/git-annex.git/refs/
-# https://salsa.debian.org/haskell-team/git-annex/-/blob/master/CHANGELOG
-# https://salsa.debian.org/haskell-team/git-annex/-/blob/master/debian/changelog
-ARG GIT_ANNEX_PACKAGE_VERSION=10.20230126-3
-# https://github.com/git/git/tree/master/Documentation/RelNotes
-ARG GIT_PACKAGE_VERSION=1:2.39.5-0+deb12u2
-# https://www.openssh.com/releasenotes.html
-# https://salsa.debian.org/ssh-team/openssh/-/blob/master/debian/changelog
-ARG OPENSSH_SERVER_PACKAGE_VERSION=1:9.2p1-2+deb12u7
-# https://salsa.debian.org/debian/tini/-/blob/debian/latest/debian/changelog?ref_type=heads
-ARG TINI_PACKAGE_VERSION=0.19.0-1+b3
 ARG USER=git
+ARG GITOLITE_PACKAGE_VERSION=3.6.12-1
 ARG GITOLITE_HOME_PATH=/var/lib/gitolite
 ENV SSHD_HOST_KEYS_DIR=/etc/ssh/host_keys
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --yes \
-        git-annex=$GIT_ANNEX_PACKAGE_VERSION \
-        git=$GIT_PACKAGE_VERSION \
+        git-annex \
+        git \
         gitolite3=$GITOLITE_PACKAGE_VERSION \
-        openssh-server=$OPENSSH_SERVER_PACKAGE_VERSION \
-        tini=$TINI_PACKAGE_VERSION \
+        openssh-server \
+        tini \
     && rm -rf /var/lib/apt/lists/* \
     && rm /etc/ssh/ssh_host_*_key* \
     && useradd --home-dir "$GITOLITE_HOME_PATH" --create-home "$USER" \
     && getent passwd "$USER" \
-    && if grep --extended-regex --invert-match '^[a-z0-9_-]+:[\*!]:' /etc/shadow; then exit 1; fi \
     && mkdir "$SSHD_HOST_KEYS_DIR" \
     && chown -c "$USER" "$SSHD_HOST_KEYS_DIR"
 # TODO merge up
